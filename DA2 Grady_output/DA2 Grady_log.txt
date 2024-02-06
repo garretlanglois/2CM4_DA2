@@ -1,0 +1,6 @@
+FlexPDE Version 7.21/OSXm  12:20:20 Dec  9 2022
+(Times listed are wall-clock times, not charged CPU).
+
+START /Users/garretlanglois/Documents/GitHub/2CM4_DA2/DA2 Grady.pde  11:03:05 2/6/24
+ +00:00:00| ***** Line 52 ERROR: INIT_TEMP is undefined in region 1
+Provide a definition in that region,or declare a default value in Definitions

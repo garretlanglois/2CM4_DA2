@@ -1,0 +1,69 @@
+
+================================================================
+===  FlexPDE Version 7.21/OSXm  12:20:20 Dec  9 2022  Copyright (c) 1996-2020 PDE Solutions Inc.
+===  /Users/garretlanglois/Documents/GitHub/2CM4_DA2/DA2 Grady.pde 11:03:05 2/6/24
+================================================================
+    1| TITLE 'New Problem'     { the problem identification }
+    2| 
+    3| COORDINATES cartesian2  { coordinate system, 1D,2D,3D, etc }
+    4| 
+    5| VARIABLES        { system variables }
+    6| 
+    7| Temp(threshold=.01) !temperature in degC
+    8| SELECT         { method controls }
+    9| ngrid = 5
+   10| DEFINITIONS    { parameter definitions }
+   11| 
+   12| !Variables Params
+   13| T_air = 120 !Degrees celcius
+   14| h_convection = 200 !The convection heat transfer coefficient
+   15| P = 500 !The power of the microwave W
+   16| 
+   17| rho
+   18| k
+   19| cp
+   20| epsilon_m
+   21| T_ideal
+   22| Init_Temp
+   23| 
+   24| !Skillet values
+   25| k_skillet = 10 !W/m^2-K
+   26| rho_skillet = 3500 !kg/m^3
+   27| cp_skillet = 1300 !J/kg-K
+   28| thickness_skillet = .5*0.01 !m thick
+   29| width_skillet = 9 * 0.01 !m wide
+   30| length_skillet = 41 * 0.01 !m long
+   31| 
+   32| qdotvol_skillet = k_skillet * rho_skillet * cp_skillet !Volumetric Heating in the Skillet
+   33| qdotvol_microwave = 0
+   34| 
+   35| 
+   36| radius_crust = 0.04 !radius of the crust in meters
+   37| radius_filling = 0.03
+   38| 
+   39| 
+   40| INITIAL VALUES
+   41| 	Temp = 4
+   42|     
+   43| EQUATIONS        { PDE's, one for each variable }
+   44| 
+   45| dt(rho*cp*Temp) = div(k_skillet*grad(Temp)) + qdotvol_skillet + h_convection*(T_air - Temp)
+   46| 
+   47| 
+   48| ! CONSTRAINTS    { Integral constraints }
+   49| 
+   50| BOUNDARIES       { The domain definition }
+   51| 
+   52|   REGION 'crust'       { For each material region }
+   53|   !Crust values
+   54|   	k = 0.5 !W/m^2-K
+   55| 	rho = 700 !kg/m^3
+   56| 	cp = 2500 !J/kg-K
+   57| 	epsilon_m = 0.05 !Percent * 0.01
+   58| 	T_ideal= 75 !Degrees celcius
+   59|     START(radius_crust,0)   { Walk the domain boundary }
+   60| 		arc(center=0,0) angle 180 load(temp) = 0
+   61| 		line to (0,0) to close
+   62| 
+   63| 	
+   64|     REGION 'filling'
