@@ -101,28 +101,25 @@ def run_code():
 def f(r):
     x = r[0]
     y = r[1]
-    z = r[2]
     return(1./((x-3.147128)**2+(y-2.73)**2+1)+.1*x+0.01*np.cos(x*10)+0.01*np.sin(y*10))
 
 def grad_f(r, delta=0.01, f=f):
     x = r[0]
     y = r[1]
-    z = r[2]
-    grad = np.zeros(3)
-    grad[0] = (f([x+delta, y, z])-f([x-delta, y, z]))/(2*delta)
-    grad[1] = (f([x, y+delta, z])-f([x, y-delta, z]))/(2*delta)
-    grad[2] = (f([x, y, z+delta])-f([x, y, z-delta]))/(2*delta)
+    grad = np.zeros(2)
+    grad[0] = (f([x+delta, y])-f([x-delta, y]))/(2*delta)
+    grad[1] = (f([x, y+delta])-f([x, y-delta]))/(2*delta)
 
     return grad
 
-def grad_desc(r, alpha=1, tol=0.01, max_iter=50):
+def grad_desc(r, alpha=1, tol=0.001, max_iter=70):
     for i in range(max_iter):
         r = r + alpha*grad_f(r)
         if np.linalg.norm(grad_f(r)) < tol:
             break
     return r
 
-r = np.array([0, 0, 0])
+r = np.array([0, 0])
 r = grad_desc(r)
 print(r)
 
