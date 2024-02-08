@@ -10,8 +10,8 @@ DEFINITIONS    { parameter definitions }
 
 !Variables Params
 T_air = 100 !Degrees celcius
-h = 100 !The convection heat transfer coefficient
-Power_mic = 500 !The power of the microwave W
+h = 200 !The convection heat transfer coefficient
+Power_mic = 4800 !The power of the microwave W
 
 rho
 k
@@ -38,9 +38,8 @@ cp_skillet = 1300 !J/kg-K
 thickness_skillet = 0.005 !m thick
 width_skillet = 0.09 !m wide
 length_skillet = 0.41 !m long
-Power_skillet= 400
- !Volumetric Heating in the Skillet
-
+Power_skillet= 800
+ 
 absorb_tot =  0.4*area_integral(epsilon_m,'crust') + 0.39*(area_integral(epsilon_m, "filling"))
 
 radius_crust = 0.04 !radius of the crust in meters
@@ -105,7 +104,7 @@ for t = 0 by endtime/5 to endtime
   CONTOUR(Temp) painted
  !vector(qdot) norm
 SUMMARY
-report(tastiness)
+report(tastiness*100)
 
 
 END

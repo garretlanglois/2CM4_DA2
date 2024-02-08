@@ -3,17 +3,16 @@ TITLE 'New Problem'     { the problem identification }
 COORDINATES cartesian2  { coordinate system, 1D,2D,3D, etc }
 
 VARIABLES        { system variables }
+Temp(threshold=.01) !temperature in C
 
-Temp(threshold=.01) !temperature in degC
-SELECT         { method controls }
-ngrid = 5
+!SELECT         { method controls }
 DEFINITIONS    { parameter definitions }
 
 !Variables Params
 T_air = 100 !Degrees celcius
-h_convection = 100 !The convection heat transfer coefficient
-P_mw = 500 !The power of the microwave W
-P_skillet = 400
+h_convection = 200 !The convection heat transfer coefficient
+P_mw = 4800 !The power of the microwave W
+P_skillet = 800
 
 
 rho
@@ -28,13 +27,14 @@ absorb_tot =  0.4*area_integral(epsilon_m,'crust') + 0.39*(area_integral(epsilon
 
 rho_crust = 700
 rho_filling = 1200
-volume_filling = 1/2*pi*0.035^2 !m^3
-volume_crust = (0.005*0.08+1/2*pi*0.04^2-1/2*pi*0.035^2) 
-massf = rho_filling*volume_filling*.39 !filling mass
-massc = rho_crust*volume_crust*.4 !crust mass
+area_filling = 1/2*pi*0.035^2 !m^3
+area_crust = (0.005*0.08+1/2*pi*0.04^2-1/2*pi*0.035^2) 
+massf = rho_filling*area_filling*.39 !filling mass
+massc = rho_crust*area_crust*.4 !crust mass
 mass = massc+massf
 
-T_integral=.4*area_integral(rho*((Temp-T_ideal)/4)^4, 'crust')+0.39*area_integral(rho*((Temp-T_ideal)/4)^4, 'filling')
+Ttol = 4
+T_integral=.4*area_integral(rho*((Temp-T_ideal)/ttol)^4, 'crust')+0.39*area_integral(rho*((Temp-T_ideal)/ttol)^4, 'filling')
 Tastiness=1/(1+T_integral/mass)
 
 !Skillet values
@@ -47,7 +47,7 @@ radius_filling = 0.03
 
 
 INITIAL VALUES
-	Temp = 4
+	Temp = Init_temp
     
 EQUATIONS        { PDE's, one for each variable }
 
@@ -78,7 +78,7 @@ BOUNDARIES       { The domain definition }
   	k = 0.5 !W/m^2-K
 	rho = rho_crust !kg/m^3
 	cp = 2500 !J/kg-K
-	epsilon_m = 0.05 !Percent * 0.01
+	epsilon_m = 0.05 !5%
 	T_ideal= 75 !Degrees celcius
     Init_Temp = 4
     qvol =  (P_mw*epsilon_m)/absorb_tot
@@ -91,7 +91,7 @@ BOUNDARIES       { The domain definition }
     REGION 'filling'
         k = 1 !W/m^2-K
 		rho = rho_filling !kg/m^3
-		epsilon_m = 0.4 ! Percent * 0.01
+		epsilon_m = 0.4 ! 40%
         cp = 4200 ! J/kg-K
 		T_ideal = 75 !Degrees celcius
         Init_Temp = 4
@@ -107,5 +107,5 @@ for t = 0 by endtime/5 to endtime
   CONTOUR (temp) painted
  !vector(qdot) norm
 SUMMARY
-report(tastiness)
+report(tastiness*100)
 END
