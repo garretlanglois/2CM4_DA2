@@ -2,9 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import subprocess
 
-
-'''
-
 flex_code = """"
 TITLE 'New Problem'     { the problem identification }
 
@@ -89,6 +86,8 @@ for t = 0 by endtime/5 to endtime
 END
 """
 
+
+
 flexfilename = "assignment_2_heatflow.pde"
 
 def run_code():
@@ -97,7 +96,7 @@ def run_code():
     
     subprocess.run(["C:\FkexPDE"])
 
-'''
+
 
 def f(r):
     x = r[0]
@@ -116,7 +115,7 @@ def grad_f(r, delta=0.01, f=f):
 
     return grad
 
-def grad_desc(r, alpha=0.01, tol=1e-6, max_iter=10000):
+def grad_desc(r, alpha=1, tol=0.01, max_iter=50):
     for i in range(max_iter):
         r = r + alpha*grad_f(r)
         if np.linalg.norm(grad_f(r)) < tol:
