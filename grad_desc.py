@@ -3,86 +3,118 @@ import matplotlib.pyplot as plt
 import subprocess
 
 flex_code = """"
-TITLE 'New Problem'     { the problem identification }
-
+TITLE 'DA2'     { the problem identification }
 COORDINATES cartesian2  { coordinate system, 1D,2D,3D, etc }
-
 VARIABLES        { system variables }
-
-Temp(threshold=.01) !temperature in degC
+Temp(threshold=.01) !temperature in C
 SELECT         { method controls }
-ngrid = 5
+ngrid = 19
 DEFINITIONS    { parameter definitions }
-
 !Variables Params
-T_air = 120 !Degrees celcius
+T_air = 100	!Degrees celcius
 h_convection = 200 !The convection heat transfer coefficient
-P = 500 !The power of the microwave W
+P_mw = %s !The power of the microwave W
+P_skillet = %s !Power of Skillet
 
+ 
+! vairable constants 
 rho
 k
 cp
 epsilon_m
 T_ideal
 Init_Temp
-
+! heat equation stuff
+qvol
+qdot = -k*grad(Temp)
+ 
+! total volume weighted absorbidity 
+absorb_tot =  0.4*area_integral(epsilon_m,'crust') + 0.39*(area_integral(epsilon_m, "filling"))
+! calculating total mass
+rho_crust = 700
+rho_filling = 1200
+area_filling = 1/2*pi*0.035^2 !m^3
+area_crust = (0.005*0.08+1/2*pi*0.04^2-1/2*pi*0.035^2) 
+massf = rho_filling*area_filling*.39 !filling mass
+massc = rho_crust*area_crust*.4 !crust mass
+mass = massc+massf
+! setting up tastiness
+Ttol = 4
+T_integral=.4*area_integral(rho*((Temp-T_ideal)/ttol)^4, 'crust')+0.39*area_integral(rho*((Temp-T_ideal)/ttol)^4, 'filling')
+Tastiness=1/(1+T_integral/mass)
 !Skillet values
-k_skillet = 10 !W/m^2-K
-rho_skillet = 3500 !kg/m^3
-cp_skillet = 1300 !J/kg-K
-thickness_skillet = .5*0.01 !m thick
+thickness_skillet = .005 !m thick
 width_skillet = 9 * 0.01 !m wide
 length_skillet = 41 * 0.01 !m long
-
-qdotvol_skillet = k_skillet * rho_skillet * cp_skillet !Volumetric Heating in the Skillet
-qdotvol_microwave = 0
-
-
-radius_crust = 0.04 !radius of the crust in meters
-radius_filling = 0.03
-
+! other geometry values
+radius_crust = 0.04 !radius in meters
+radius_filling = 0.035
 
 INITIAL VALUES
-	Temp = 4
-    
-EQUATIONS        { PDE's, one for each variable }
-
-dt(rho*cp*Temp) = div(k_skillet*grad(Temp)) + qdotvol_skillet + h_convection*(T_air - Temp)
-
+	Temp = Init_temp
+EQUATIONS        
+! heat equation
+dt(rho*cp*Temp) = div(k*grad(Temp)) + qvol
 
 ! CONSTRAINTS    { Integral constraints }
-
 BOUNDARIES       { The domain definition }
+  Region 'skillet'
+ 
+  ! contants for skillet
+  k = 10
+  rho = 3500
+  cp = 1300
+  epsilon_m = 0
+  T_Ideal = 0
+  Init_Temp = 24
+ 
+  ! volumetric heat generation over volume so it's per m^3  
+  qvol =  P_skillet/(integral(1,"skillet")*0.41)
+ 
+  START (-width_skillet/2, thickness_skillet)
+    	line to (width_skillet/2, thickness_skillet)  load(temp) = 0
+        line to (width_skillet/2, 0)
+        line to (-width_skillet/2, 0)
+        line to close
+ 
 
-  REGION 'crust'       { For each material region }
+  REGION 'crust'       
   !Crust values
   	k = 0.5 !W/m^2-K
-	rho = 700 !kg/m^3
+	rho = rho_crust !kg/m^3
 	cp = 2500 !J/kg-K
-	epsilon_m = 0.05 !Percent * 0.01
+	epsilon_m = 0.05 !5%
 	T_ideal= 75 !Degrees celcius
-    START(radius_crust,0)   { Walk the domain boundary }
-		arc(center=0,0) angle 180 load(temp) = 0
-		line to (0,0) to close
+    Init_Temp = 4
+    ! microwave generation
+    qvol =  (P_mw*epsilon_m)/absorb_tot
+    START(radius_crust,thickness_skillet) load(temp) = h_convection*(temp-t_air)  
+		line to (radius_crust, thickness_skillet+0.005) 
+        arc(center=0,thickness_skillet+0.005) angle 180 
+    	line to (-radius_crust, thickness_skillet) load(temp) = 0 
+        line to (radius_crust,thickness_skillet) to close
 
-	
     REGION 'filling'
         k = 1 !W/m^2-K
-		rho = 1200 !kg/m^3
-		epsilon_m = 0.4 ! Percent + 0.01
+		rho = rho_filling !kg/m^3
+		epsilon_m = 0.4 ! 40%
         cp = 4200 ! J/kg-K
 		T_ideal = 75 !Degrees celcius
-		start(radius_filling,0.005) !value(temp)=0
-			arc(center=0,0.005) angle 180 load(temp) = 0 
-			line to (0,0.005) to close
-
-TIME 0 TO 5   { if time dependent }
-
+        Init_Temp = 4
+        qvol =  (P_mw*epsilon_m)/absorb_tot
+		start(radius_filling,0.005+thickness_skillet) !load(temp) = 0 
+			arc(center=0,0.005+thickness_skillet) angle 180  
+			line to (0,0.005+thickness_skillet) to close
+ 
+ 
+TIME 0 TO  60{ if time dependent }
 PLOTS            { save result displays }
-for t = 0 by endtime/5 to endtime
-  CONTOUR(Temp) painted
-!	vector(qdot) norm
-	summary
+for t = endtime
+  CONTOUR (temp) painted
+  vector(qdot) norm
+SUMMARY
+EXPORT FILE 'ELOut.txt'
+report(tastiness*100) !accounts for percent
 END
 """
 
@@ -94,14 +126,18 @@ def run_code():
     with open(flexfilename, 'w') as f:
         print(flex_code)
     
-    subprocess.run(["C:\FkexPDE"])
+    subprocess.run(["C:\FlexPDE6student\FlexPDE6s.exe", "-S", flexfilename], timeout=5)
+
+    with open("ELOut.txt", 'r') as f:
+        data=np.loadtxt(f, skiprows=7)
 
 
-
+'''
 def f(r):
     x = r[0]
     y = r[1]
     return(1./((x-3.147128)**2+(y-2.73)**2+1)+.1*x+0.01*np.cos(x*10)+0.01*np.sin(y*10))
+'''
 
 def grad_f(r, delta=0.01, f=f):
     x = r[0]
