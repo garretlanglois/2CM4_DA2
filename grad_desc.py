@@ -1,10 +1,14 @@
 import numpy as np
+import matplotlib.pyplot as plt
+import subprocess
+
+def run_code():
+
+
 def f(r):
     x=r[0]
     y=r[1]
     return(1./((x-3.147128)**2+(y-2.73)**2+1)+.1*x+0.01*np.cos(x*10)+0.01*np.sin(y*10))
-
-import matplotlib.pyplot as plt
 
 def grad(r,f0,delta=1e-3,f=f):
     dx=[delta,0]
