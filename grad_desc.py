@@ -86,8 +86,11 @@ for t = 0 by endtime/5 to endtime
 END
 """
 
-def run_code():
+flexfilename = "assignment_2_heatflow.pde"
 
+def run_code():
+    with open(flexfilename, 'w') as f:
+        print(flex_code)
 
 def f(r):
     x=r[0]
