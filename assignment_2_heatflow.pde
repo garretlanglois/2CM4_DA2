@@ -1,3 +1,4 @@
+
 TITLE 'DA2'     { the problem identification }
 COORDINATES cartesian2  { coordinate system, 1D,2D,3D, etc }
 VARIABLES        { system variables }
@@ -6,10 +7,10 @@ SELECT         { method controls }
 ngrid = 19
 DEFINITIONS    { parameter definitions }
 !Variables Params
-T_air = 100	!Degrees celcius
+T_air = 120	!Degrees celcius
 h_convection = 200 !The convection heat transfer coefficient
-P_mw = 4800 !The power of the microwave W
-P_skillet = 800 !Power of Skillet
+P_mw = 4420.889999999999 !The power of the microwave W
+P_skillet = 994.9449999999995 !Power of Skillet
 
  
 ! vairable constants 
@@ -78,7 +79,7 @@ BOUNDARIES       { The domain definition }
   	k = 0.5 !W/m^2-K
 	rho = rho_crust !kg/m^3
 	cp = 2500 !J/kg-K
-	epsilon_m = 0.05 !5%
+	epsilon_m = 0.05 !5
 	T_ideal= 75 !Degrees celcius
     Init_Temp = 4
     ! microwave generation
@@ -92,7 +93,7 @@ BOUNDARIES       { The domain definition }
     REGION 'filling'
         k = 1 !W/m^2-K
 		rho = rho_filling !kg/m^3
-		epsilon_m = 0.4 ! 40%
+		epsilon_m = 0.4 ! 40
         cp = 4200 ! J/kg-K
 		T_ideal = 75 !Degrees celcius
         Init_Temp = 4
@@ -111,3 +112,4 @@ SUMMARY
 EXPORT FILE 'ELOut.txt'
 report(tastiness*100) !accounts for percent
 END
+

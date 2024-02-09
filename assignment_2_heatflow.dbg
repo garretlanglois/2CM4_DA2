@@ -1,0 +1,195 @@
+
+================================================================
+===  FlexPDE Version 6.36s/W32  14:13:44 Jan  8 2015  © 1996-2014 PDE Solutions Inc.
+===  C:\Users\gasla\Documents\2CM4_DA2\assignment_2_heatflow.pde 19:54:42 2/8/24
+================================================================
+    1| 
+    2| TITLE 'DA2'     { the problem identification }
+    3| COORDINATES cartesian2  { coordinate system, 1D,2D,3D, etc }
+    4| VARIABLES        { system variables }
+    5| Temp(threshold=.01) !temperature in C
+    6| SELECT         { method controls }
+    7| ngrid = 19
+    8| DEFINITIONS    { parameter definitions }
+    9| !Variables Params
+   10| T_air = 120	!Degrees celcius
+   11| h_convection = 200 !The convection heat transfer coefficient
+   12| P_mw = 4420.889999999999 !The power of the microwave W
+   13| P_skillet = 994.9449999999995 !Power of Skillet
+   14| 
+   15|  
+   16| ! vairable constants 
+   17| rho
+   18| k
+   19| cp
+   20| epsilon_m
+   21| T_ideal
+   22| Init_Temp
+   23| ! heat equation stuff
+   24| qvol
+   25| qdot = -k*grad(Temp)
+   26|  
+   27| ! total volume weighted absorbidity 
+   28| absorb_tot =  0.4*area_integral(epsilon_m,'crust') + 0.39*(area_integral(epsilon_m, "filling"))
+   29| ! calculating total mass
+   30| rho_crust = 700
+   31| rho_filling = 1200
+   32| area_filling = 1/2*pi*0.035^2 !m^3
+   33| area_crust = (0.005*0.08+1/2*pi*0.04^2-1/2*pi*0.035^2) 
+   34| massf = rho_filling*area_filling*.39 !filling mass
+   35| massc = rho_crust*area_crust*.4 !crust mass
+   36| mass = massc+massf
+   37| ! setting up tastiness
+   38| Ttol = 4
+   39| T_integral=.4*area_integral(rho*((Temp-T_ideal)/ttol)^4, 'crust')+0.39*area_integral(rho*((Temp-T_ideal)/ttol)^4, 'filling')
+   40| Tastiness=1/(1+T_integral/mass)
+   41| !Skillet values
+   42| thickness_skillet = .005 !m thick
+   43| width_skillet = 9 * 0.01 !m wide
+   44| length_skillet = 41 * 0.01 !m long
+   45| ! other geometry values
+   46| radius_crust = 0.04 !radius in meters
+   47| radius_filling = 0.035
+   48| 
+   49| INITIAL VALUES
+   50| 	Temp = Init_temp
+   51| EQUATIONS        
+   52| ! heat equation
+   53| dt(rho*cp*Temp) = div(k*grad(Temp)) + qvol
+   54| 
+   55| ! CONSTRAINTS    { Integral constraints }
+   56| BOUNDARIES       { The domain definition }
+   57|   Region 'skillet'
+   58|  
+   59|   ! contants for skillet
+   60|   k = 10
+   61|   rho = 3500
+   62|   cp = 1300
+   63|   epsilon_m = 0
+   64|   T_Ideal = 0
+   65|   Init_Temp = 24
+   66|  
+   67|   ! volumetric heat generation over volume so it's per m^3  
+   68|   qvol =  P_skillet/(integral(1,"skillet")*0.41)
+   69|  
+   70|   START (-width_skillet/2, thickness_skillet)
+   71|     	line to (width_skillet/2, thickness_skillet)  load(temp) = 0
+   72|         line to (width_skillet/2, 0)
+   73|         line to (-width_skillet/2, 0)
+   74|         line to close
+   75|  
+   76| 
+   77|   REGION 'crust'       
+   78|   !Crust values
+   79|   	k = 0.5 !W/m^2-K
+   80| 	rho = rho_crust !kg/m^3
+   81| 	cp = 2500 !J/kg-K
+   82| 	epsilon_m = 0.05 !5
+   83| 	T_ideal= 75 !Degrees celcius
+   84|     Init_Temp = 4
+   85|     ! microwave generation
+   86|     qvol =  (P_mw*epsilon_m)/absorb_tot
+   87|     START(radius_crust,thickness_skillet) load(temp) = h_convection*(temp-t_air)  
+   88| 		line to (radius_crust, thickness_skillet+0.005) 
+   89|         arc(center=0,thickness_skillet+0.005) angle 180 
+   90|     	line to (-radius_crust, thickness_skillet) load(temp) = 0 
+   91|         line to (radius_crust,thickness_skillet) to close
+   92| 
+   93|     REGION 'filling'
+   94|         k = 1 !W/m^2-K
+   95| 		rho = rho_filling !kg/m^3
+   96| 		epsilon_m = 0.4 ! 40
+   97|         cp = 4200 ! J/kg-K
+   98| 		T_ideal = 75 !Degrees celcius
+   99|         Init_Temp = 4
+  100|         qvol =  (P_mw*epsilon_m)/absorb_tot
+  101| 		start(radius_filling,0.005+thickness_skillet) !load(temp) = 0 
+  102| 			arc(center=0,0.005+thickness_skillet) angle 180  
+  103| 			line to (0,0.005+thickness_skillet) to close
+  104|  
+  105|  
+  106| TIME 0 TO  60{ if time dependent }
+  107| PLOTS            { save result displays }
+  108| for t = endtime
+  109|   CONTOUR (temp) painted
+  110|   vector(qdot) norm
+  111| SUMMARY
+  112| EXPORT FILE 'ELOut.txt'
+  113| report(tastiness*100) !accounts for percent
+  114| END
+FlexPDE Student Version 6.36s/W32 3D
+© 1996-2014 PDE Solutions Inc.
+FlexPDE Student Version 6.36s/W32 3D
+© 1996-2014 PDE Solutions Inc.
+FlexPDE Student Version 6.36s/W32 3D
+© 1996-2014 PDE Solutions Inc.
+
+SUMMARIZE 29 PARAMETERS (NO COMMON SUBEXPRESSION ELIMINATION)
+   Param         Compartment       Complexity     Memory
+--------------------------------------------------------------
+          T_AIR      0                    1         56
+   H_CONVECTION      0                    1         56
+           P_MW      0                    1         56
+      P_SKILLET      0                    1         56
+            RHO      1                    1         56
+            RHO      2                    1         56
+            RHO      3                    1         56
+              K      1                    1         56
+              K      2                    1         56
+              K      3                    1         56
+             CP      1                    1         56
+             CP      2                    1         56
+             CP      3                    1         56
+      EPSILON_M      1                    1         56
+      EPSILON_M      2                    1         56
+      EPSILON_M      3                    1         56
+        T_IDEAL      1                    1         56
+        T_IDEAL      2                    1         56
+        T_IDEAL      3                    1         56
+      INIT_TEMP      1                    1         56
+      INIT_TEMP      2                    1         56
+      INIT_TEMP      3                    1         56
+           QVOL      1                    3        168
+           QVOL      2                    9        504
+           QVOL      3                    9        504
+           QDOT      1                   13        728
+           QDOT      2                   13        728
+           QDOT      3                    7        392
+     ABSORB_TOT      0                    7        392
+      RHO_CRUST      0                    1         56
+    RHO_FILLING      0                    1         56
+   AREA_FILLING      0                    1         56
+     AREA_CRUST      0                    1         56
+          MASSF      0                    1         56
+          MASSC      0                    1         56
+           MASS      0                    1         56
+           TTOL      0                    1         56
+     T_INTEGRAL      0                    7        392
+      TASTINESS      0                   13        728
+THICKNESS_SKILLET      0                    1         56
+  WIDTH_SKILLET      0                    1         56
+ LENGTH_SKILLET      0                    1         56
+   RADIUS_CRUST      0                    1         56
+ RADIUS_FILLING      0                    1         56
+        ENDTIME      0                    1         56
+
+SUMMARIZE EQUATIONS
+
+                                                    BASE         CSE
+ EQUATION  COMPARTMENT              FUNCTION     COMPLEXITY  COMPLEXITY    MEMORY
+----------------------------------------------------------------------------------
+     1          1                     Source          3            4          224
+     1          1                   Galerkin          9            9          504
+     1          1       Var  1      Jacobian          9            9          504
+     1          1              Surf Galerkin         10           10          560
+     1          1       Var  1 Surf Jacobian         10            9          504
+     1          2                     Source          9           10          560
+     1          2                   Galerkin          9            9          504
+     1          2       Var  1      Jacobian          9            9          504
+     1          2              Surf Galerkin         10           10          560
+     1          2       Var  1 Surf Jacobian         10            9          504
+     1          3                     Source          9           10          560
+     1          3                   Galerkin          5            5          280
+     1          3       Var  1      Jacobian          5            5          280
+     1          3              Surf Galerkin          6            6          336
+     1          3       Var  1 S

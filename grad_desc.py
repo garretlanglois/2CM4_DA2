@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import subprocess
 
-flex_code = """"
+flexcode = """
 TITLE 'DA2'     { the problem identification }
 COORDINATES cartesian2  { coordinate system, 1D,2D,3D, etc }
 VARIABLES        { system variables }
@@ -11,7 +11,7 @@ SELECT         { method controls }
 ngrid = 19
 DEFINITIONS    { parameter definitions }
 !Variables Params
-T_air = 100	!Degrees celcius
+T_air = 120	!Degrees celcius
 h_convection = 200 !The convection heat transfer coefficient
 P_mw = %s !The power of the microwave W
 P_skillet = %s !Power of Skillet
@@ -83,7 +83,7 @@ BOUNDARIES       { The domain definition }
   	k = 0.5 !W/m^2-K
 	rho = rho_crust !kg/m^3
 	cp = 2500 !J/kg-K
-	epsilon_m = 0.05 !5%
+	epsilon_m = 0.05 !5
 	T_ideal= 75 !Degrees celcius
     Init_Temp = 4
     ! microwave generation
@@ -97,7 +97,7 @@ BOUNDARIES       { The domain definition }
     REGION 'filling'
         k = 1 !W/m^2-K
 		rho = rho_filling !kg/m^3
-		epsilon_m = 0.4 ! 40%
+		epsilon_m = 0.4 ! 40
         cp = 4200 ! J/kg-K
 		T_ideal = 75 !Degrees celcius
         Init_Temp = 4
@@ -118,18 +118,46 @@ report(tastiness*100) !accounts for percent
 END
 """
 
-
+max_tastiness = 0
+max_P_mw = 0
+max_P_skillet = 0
 
 flexfilename = "assignment_2_heatflow.pde"
 
-def run_code():
-    with open(flexfilename, 'w') as f:
-        print(flex_code)
+def run_code(r):
+    global max_tastiness
+    global max_P_mw
+    global max_P_skillet
+    print(r)
+
+    P_mw = 0
+    P_skillet = 0
+
+    P_mw = r[0]
+    P_skillet = r[1]
+
+    with open(flexfilename, "w") as f:
+        print(flexcode%(P_skillet, P_mw), file=f)
     
     subprocess.run(["C:\FlexPDE6student\FlexPDE6s.exe", "-S", flexfilename], timeout=5)
 
-    with open("ELOut.txt", 'r') as f:
-        data=np.loadtxt(f, skiprows=7)
+    tastiness = 0
+
+    with open("ELOut_1.txt", 'r') as f:
+        for i, line in enumerate(f):
+            if i == 7:  # Since line counting starts at 0
+                parts = line.split('=')
+                if len(parts) > 1:
+                    tastiness = float(parts[1].strip())
+
+    print (tastiness)
+
+    if tastiness > max_tastiness:
+        max_tastiness = tastiness
+        max_P_mw = P_mw
+        max_P_skillet = P_skillet
+
+    return tastiness
 
 
 '''
@@ -139,23 +167,41 @@ def f(r):
     return(1./((x-3.147128)**2+(y-2.73)**2+1)+.1*x+0.01*np.cos(x*10)+0.01*np.sin(y*10))
 '''
 
-def grad_f(r, delta=0.01, f=f):
+def grad_f(r, delta=10, f=run_code):
     x = r[0]
     y = r[1]
     grad = np.zeros(2)
     grad[0] = (f([x+delta, y])-f([x-delta, y]))/(2*delta)
     grad[1] = (f([x, y+delta])-f([x, y-delta]))/(2*delta)
 
-    return grad
+    return grad*100
 
-def grad_desc(r, alpha=1, tol=0.001, max_iter=70):
+def grad_desc(r, alpha=1000, tol=0.014, max_iter=1000):
     for i in range(max_iter):
-        r = r + alpha*grad_f(r)
+        gradient = grad_f(r)
+        r = r + alpha*gradient
+        #r[0] = r[0] + np.sign(gradient[0])*10*np.log(np.abs(alpha*gradient[0]))
+        #r[1] = r[1] + np.sign(gradient[1])*10*np.log(np.abs(alpha*gradient[1]))
+        print(np.linalg.norm(grad_f(r)))
         if np.linalg.norm(grad_f(r)) < tol:
+            print(np.linalg.norm(grad_f(r)))
             break
     return r
 
-r = np.array([0, 0])
+
+r = np.array([1000, 4400])
 r = grad_desc(r)
 print(r)
+tastiness_value = run_code(r)
+
+#This accounts for weird issues in flex that lead to value fringing around points, 
+#this helps to fix issues with discountinuity which gradient ascent can't handle nicely
+
+if max_tastiness > tastiness_value:
+    tastiness_value = max_tastiness
+    r[0] = max_P_mw
+    r[1] = max_P_skillet
+
+print(tastiness_value, " this is the final tastiness value.")
+print(r, " this is the final power values.")
 
