@@ -11,7 +11,7 @@ SELECT         { method controls }
 ngrid = 19
 DEFINITIONS    { parameter definitions }
 !Variables Params
-T_air = 100	!Degrees celcius
+T_air = 120	!Degrees celcius
 h_convection = 200 !The convection heat transfer coefficient
 P_mw = %s !The power of the microwave W
 P_skillet = %s !Power of Skillet
@@ -150,8 +150,6 @@ def run_code(r):
                 if len(parts) > 1:
                     tastiness = float(parts[1].strip())
 
-    print (tastiness)
-
     if tastiness > max_tastiness:
         max_tastiness = tastiness
         max_P_mw = P_mw
@@ -176,7 +174,7 @@ def grad_f(r, delta=10, f=run_code):
 
     return grad*100
 
-def grad_desc(r, alpha=10, tol=0.014, max_iter=1000):
+def grad_desc(r, alpha=1000, tol=0.000001, max_iter=1000):
     for i in range(max_iter):
         gradient = grad_f(r)
         r = r + alpha*gradient
@@ -186,7 +184,7 @@ def grad_desc(r, alpha=10, tol=0.014, max_iter=1000):
     return r
 
 
-r = np.array([1000, 4400])
+r = np.array([200, 3000])
 r = grad_desc(r)
 print(r)
 tastiness_value = run_code(r)

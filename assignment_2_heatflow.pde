@@ -7,10 +7,10 @@ SELECT         { method controls }
 ngrid = 19
 DEFINITIONS    { parameter definitions }
 !Variables Params
-T_air = 100	!Degrees celcius
+T_air = 120	!Degrees celcius
 h_convection = 200 !The convection heat transfer coefficient
-P_mw = 4780.5915 !The power of the microwave W
-P_skillet = 1005.261 !Power of Skillet
+P_mw = 4434.020000000001 !The power of the microwave W
+P_skillet = 1010.6550000000016 !Power of Skillet
 
  
 ! vairable constants 
