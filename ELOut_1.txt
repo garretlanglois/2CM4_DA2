@@ -1,8 +1,8 @@
 {
 FlexPDE Version 6.36s/W32  14:13:44 Jan  8 2015
-assignment_2_heatflow.pde  19:54:41 2/8/24
+assignment_2_heatflow.pde  19:55:20 2/8/24
 Title: SUMMARY
  Time 60
 }
  SUMMARY
- tastiness*100=  2.522176
+ tastiness*100=  2.522633
