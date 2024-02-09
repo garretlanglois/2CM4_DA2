@@ -11,7 +11,7 @@ SELECT         { method controls }
 ngrid = 19
 DEFINITIONS    { parameter definitions }
 !Variables Params
-T_air = 120	!Degrees celcius
+T_air = 100	!Degrees celcius
 h_convection = 200 !The convection heat transfer coefficient
 P_mw = %s !The power of the microwave W
 P_skillet = %s !Power of Skillet
@@ -176,13 +176,10 @@ def grad_f(r, delta=10, f=run_code):
 
     return grad*100
 
-def grad_desc(r, alpha=1000, tol=0.014, max_iter=1000):
+def grad_desc(r, alpha=10, tol=0.014, max_iter=1000):
     for i in range(max_iter):
         gradient = grad_f(r)
         r = r + alpha*gradient
-        #r[0] = r[0] + np.sign(gradient[0])*10*np.log(np.abs(alpha*gradient[0]))
-        #r[1] = r[1] + np.sign(gradient[1])*10*np.log(np.abs(alpha*gradient[1]))
-        print(np.linalg.norm(grad_f(r)))
         if np.linalg.norm(grad_f(r)) < tol:
             print(np.linalg.norm(grad_f(r)))
             break
@@ -196,6 +193,7 @@ tastiness_value = run_code(r)
 
 #This accounts for weird issues in flex that lead to value fringing around points, 
 #this helps to fix issues with discountinuity which gradient ascent can't handle nicely
+#The gradient ascent is used to get close to the optimal value, then we use this to get the final value
 
 if max_tastiness > tastiness_value:
     tastiness_value = max_tastiness
